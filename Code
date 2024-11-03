@@ -1,0 +1,147 @@
+using UnityEngine;
+
+
+public class PlayerMovement : MonoBehaviour
+{
+    public GameObject test;
+
+    //Tasks Objects
+    //public GameObject SolarPanel;
+    //public GameObject SteeringWheel;
+    //public GameObject Shield;
+    //public GameObject ReactorInside;
+    //public GameObject ReactorOutside;
+
+
+    //Player Characters
+    public GameObject Alien;
+    public GameObject Axolotl;
+    public Rigidbody2D alienrb;
+    public Rigidbody2D axolotlrb;
+    
+
+    //Character Movement
+    public float axolotlSpeed = 5f;
+    public float alienSpeed = 5f;
+    public Vector2 alienMovement;
+    public Vector2 axolotlMovement;
+
+    public float alienX;
+    public float alienY;   // field initializer cannot reference non-static field, method, PlayerMovement.Alien
+
+    // Space Objects
+    // public GameObject Asteroid;
+
+    //Task Interaction
+    public bool axolotlOperate;
+    public bool alienOperate;
+    private string axolotlNear = null;
+    private string alienNear = null;
+    public float axolotlTimer = 0f;
+    public float alienTimer = 0f;
+
+    // Tasks Needed
+    public float hullHealth = 75f;
+    
+
+    void Start()
+    {
+        alienrb = Alien.GetComponent<Rigidbody2D>();
+        axolotlrb = Axolotl.GetComponent<Rigidbody2D>();
+    }
+
+    void Update()
+    {
+        // Get input from the player
+        axolotlMovement.x = ((Input.GetKey(KeyCode.A) ? 1 : 0) * -1) + (Input.GetKey(KeyCode.D) ? 1 : 0);
+        alienMovement.x = ((Input.GetKey(KeyCode.LeftArrow) ? 1 : 0) * -1) + (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+        alienOperate = Input.GetKey(KeyCode.Period);
+        axolotlOperate = Input.GetKey(KeyCode.R);
+
+        alienX = Alien.transform.position.x;
+        alienY = Alien.transform.position.y;
+        
+        if (axolotlMovement.x < 0)
+            Axolotl.transform.localScale = new Vector3(-.05f, .05f, 1.0f);
+        else if (axolotlMovement.x > 0)
+            Axolotl.transform.localScale = new Vector3(.05f, .05f, 1.0f);
+
+        if (alienMovement.x < 0)
+            Alien.transform.localScale = new Vector3(-.05f, .05f, 1.0f);
+        else if (alienMovement.x > 0)
+            Alien.transform.localScale = new Vector3(.05f, .05f, 1.0f);
+
+        if (alienX >= 3.167945) 
+            Alien.transform.Rotate(new Vector3(90f, 0f, 0f));
+        else if (alienX <= -5) 
+            Alien.transform.Rotate(new Vector3(270f, 0f, 0f));
+    }
+
+    void FixedUpdate()
+    {   
+        MoveAlien();
+        MoveAxolotl();
+        Repair();
+        checkNear();
+    }
+
+    void MoveAlien()
+    {
+        alienrb.MovePosition(alienrb.position + alienMovement * alienSpeed * Time.fixedDeltaTime);
+    }
+
+    void MoveAxolotl()
+    {
+        axolotlrb.MovePosition(axolotlrb.position + axolotlMovement * axolotlSpeed * Time.fixedDeltaTime);
+    }
+
+    void checkNear() 
+    {
+        Debug.Log(AreObjectsTouching(Axolotl, test));
+        if (AreObjectsTouching(Axolotl, test))
+            axolotlNear = test.gameObject.name;
+        Debug.Log("AAAAAA " + axolotlNear);
+    }
+
+    void Repair(){
+        if (axolotlOperate && axolotlNear == "Repair" && hullHealth < 100) 
+        {
+            axolotlTimer += Time.deltaTime;
+
+            if (axolotlTimer >= 3f)
+            {
+                hullHealth = 100;
+                axolotlTimer = 0f;
+            }
+        }
+    }
+
+
+    void AdjustSolarPanels() {
+        if(alienOperate) 
+        {
+            
+        }
+    }
+
+    bool AreObjectsTouching(GameObject objA, GameObject objB)
+    {
+        // Get the colliders of both objects
+        Collider colliderA = objA.GetComponent<Collider>();
+        Collider colliderB = objB.GetComponent<Collider>();
+
+        if (colliderA != null && colliderB != null)
+        {
+            // Use Physics.OverlapSphere or a similar method to check for overlap
+            Vector3 centerA = colliderA.bounds.center;
+            Vector3 centerB = colliderB.bounds.center;
+
+            // Check distance between the centers of the two colliders
+            float distance = Vector3.Distance(centerA, centerB);
+            return distance < 0.5f; // Check if they are within the radius
+        }
+
+        return false; // If either collider is missing, they are not touching
+    }
+}
+
